@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.mycompany.customerservice.constants.CustomerServiceConstants.ROOT_PATH;
 
@@ -25,24 +26,29 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@RequestBody CustomerRequest customerRequest) {
-        LOGGER.info("customer details are {}", customerRequest);
+        LOGGER.info("Received customer details: {}", customerRequest);
         CustomerResponse customerResponse = customerService.saveCustomer(customerRequest);
         return new ResponseEntity<>(customerResponse, HttpStatus.OK);
     }
 
     @GetMapping
     public ResponseEntity<List<CustomerResponse>> getCustomer() {
-        LOGGER.info("fetching customers from a database");
-        List<CustomerResponse> customerResponse = customerService.getCustomers();
-        return new ResponseEntity<>(customerResponse, HttpStatus.OK);
+        LOGGER.info("Received request to fetch all customers from the database");
+        List<CustomerResponse> customers = customerService.getAllCustomers();
+        if (customers.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204 No Content
+        }
+        return ResponseEntity.ok(customers); // 200 OK
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerResponse> getCustomers(@PathVariable("id") String customerId) {
-        LOGGER.info("fetching customer with an id {}", customerId);
-        CustomerResponse customerResponse = customerService.getCustomerById(customerId);
-        return new ResponseEntity<>(customerResponse, HttpStatus.OK);
+    public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable("id") String customerId) {
+        LOGGER.info("Received request to fetch customer with ID: {}", customerId);
+        return customerService.getCustomerById(customerId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> {
+                    return ResponseEntity.notFound().build();
+                });
     }
-
 
 }

@@ -4,7 +4,6 @@ import com.mycompany.customerservice.controller.CustomerController;
 import com.mycompany.customerservice.dao.Customer;
 import com.mycompany.customerservice.dto.CustomerRequest;
 import com.mycompany.customerservice.dto.CustomerResponse;
-import com.mycompany.customerservice.exception.CustomerNotFoundException;
 import com.mycompany.customerservice.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -40,7 +39,6 @@ public class CustomerServiceImpl implements CustomerService {
                 .build();
     }
 
-
     @Override
     public CustomerResponse saveCustomer(CustomerRequest customerRequest) {
         Customer customer = mapToCustomer(customerRequest);
@@ -51,21 +49,31 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerResponse> getCustomers() {
-        LOGGER.info("fetching customers from database");
+    public List<CustomerResponse> getAllCustomers() {
+        LOGGER.info("Fetching all customers from the database");
         List<Customer> customers = customerRepository.findAll();
-        return customers.stream().map(this::mapToCustomerResponse).toList();
+        if (customers.isEmpty()) {
+            LOGGER.info("No customers found in the database");
+            return List.of(); // return empty immutable list
+        }
+        LOGGER.info("Found {} customer(s)", customers.size());
+        return customers.stream()
+                .map(this::mapToCustomerResponse)
+                .toList();
     }
 
     @Override
-    public CustomerResponse getCustomerById(String customerId) {
-        Optional<Customer> dbWrapper = customerRepository.findById(customerId);
-        if (dbWrapper.isPresent()) {
-            return mapToCustomerResponse(dbWrapper.get());
+    public Optional<CustomerResponse> getCustomerById(String customerId) {
+        LOGGER.info("fetching customer using customerId {} from the database", customerId);
+        Optional<Customer> customerWrapper = customerRepository.findById(customerId);
+        if (customerWrapper.isPresent()) {
+            LOGGER.info("Customer with ID: {} found", customerId);
+            return customerWrapper.map(this::mapToCustomerResponse);
         } else {
-            LOGGER.info("Customer with ID {} not present in database", customerId);
-            throw new CustomerNotFoundException("Customer not found with ID: " + customerId);
+            LOGGER.info("Customer with ID: {} not found", customerId);
+            return Optional.empty();
         }
     }
+
 
 }
