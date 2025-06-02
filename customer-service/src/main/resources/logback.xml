@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d|%-5p|%t|${spring.profiles.active}|customer-service|${PID}|%X{logCorrelationId}|%logger{5}|%mdc|%m%n</Pattern>
+        </encoder>
+    </appender>
+
+    <!-- FILE Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logs.dir}/customer-service.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logs.dir}/customer-service-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100kb</maxFileSize>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d|%-5p|%t|${active_profile}|customer-service|${PID}|%X{logCorrelationId}|%logger{5}|%mdc|%m%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- IN-OUT Appender -->
+    <appender name="IN-OUT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logs.dir}/customer-service-request-response.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logs.dir}/customer-service-request-response-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100kb</maxFileSize>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d|%-5p|%t|${active_profile}|customer-service|${PID}|%X{logCorrelationId}|%logger{5}|%mdc|%m%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ERROR Appender -->
+    <appender name="ERROR-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logs.dir}/customer-service.error</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logs.dir}/customer-service.error.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>100kb</maxFileSize>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d|%-5p|%t|${active_profile}|customer-service|${PID}|%X{logCorrelationId}|%logger{5}|%mdc|%m%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- Framework Logging -->
+    <logger name="org.springframework" level="WARN" />
+    <logger name="ch.qos.logback" level="WARN" />
+
+    <!-- Spring Profiles -->
+    <springProfile name="!local">
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR-FILE"/>
+            <appender-ref ref="IN-OUT-FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="IN-OUT-FILE"/>
+            <appender-ref ref="ERROR-FILE"/>
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+</configuration>
+
+
+    <!--<root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR-FILE"/>
+    </root>-->
