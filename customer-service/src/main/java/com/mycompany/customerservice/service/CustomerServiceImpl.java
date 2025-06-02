@@ -1,47 +1,71 @@
 package com.mycompany.customerservice.service;
 
+import com.mycompany.customerservice.controller.CustomerController;
 import com.mycompany.customerservice.dao.Customer;
 import com.mycompany.customerservice.dto.CustomerRequest;
 import com.mycompany.customerservice.dto.CustomerResponse;
+import com.mycompany.customerservice.exception.CustomerNotFoundException;
 import com.mycompany.customerservice.repository.CustomerRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Service
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomerServiceImpl.class);
     private final CustomerRepository customerRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    private Customer mapToCustomer(CustomerRequest request) {
+        return Customer.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .address(request.getAddress())
+                .build();
     }
+
+    private CustomerResponse mapToCustomerResponse(Customer customer) {
+        return CustomerResponse.builder()
+                .id(customer.getId())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .email(customer.getEmail())
+                .address(customer.getAddress())
+                .build();
+    }
+
 
     @Override
     public CustomerResponse saveCustomer(CustomerRequest customerRequest) {
-        // Convert request DTO to entity
-        Customer customer = convertToEntity(customerRequest);
-        // Save the entity
+        Customer customer = mapToCustomer(customerRequest);
+        //todo : check if entered email is valid email address,unique email
         Customer savedCustomer = customerRepository.save(customer);
-        // Convert saved entity to response DTO
-        return convertToResponse(savedCustomer);
+        LOGGER.info("Customer has saved with id {} ", savedCustomer.getId());
+        return mapToCustomerResponse(savedCustomer);
     }
 
-    private Customer convertToEntity(CustomerRequest request) {
-        Customer customer = new Customer();
-        customer.setFirstName(request.getFirstName());
-        customer.setLastName(request.getLastName());
-        customer.setEmail(request.getEmail());
-        customer.setAddress(request.getAddress());
-        return customer;
+    @Override
+    public List<CustomerResponse> getCustomers() {
+        LOGGER.info("fetching customers from database");
+        List<Customer> customers = customerRepository.findAll();
+        return customers.stream().map(this::mapToCustomerResponse).toList();
     }
 
-    private CustomerResponse convertToResponse(Customer customer) {
-        CustomerResponse response = new CustomerResponse();
-        response.setId(customer.getId());
-        response.setFirstName(customer.getFirstName());
-        response.setLastName(customer.getLastName());
-        response.setEmail(customer.getEmail());
-        response.setAddress(customer.getAddress());
-        return response;
+    @Override
+    public CustomerResponse getCustomerById(String customerId) {
+        Optional<Customer> dbWrapper = customerRepository.findById(customerId);
+        if (dbWrapper.isPresent()) {
+            return mapToCustomerResponse(dbWrapper.get());
+        } else {
+            LOGGER.info("Customer with ID {} not present in database", customerId);
+            throw new CustomerNotFoundException("Customer not found with ID: " + customerId);
+        }
     }
 
 }

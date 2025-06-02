@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 import static com.mycompany.customerservice.constants.CustomerServiceConstants.ROOT_PATH;
 
 @RestController
@@ -23,12 +23,26 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@RequestBody CustomerRequest customerRequest) {
-        LOGGER.info("into createCustomer method");
-        LOGGER.error("error message");
+        LOGGER.info("customer details are {}", customerRequest);
         CustomerResponse customerResponse = customerService.saveCustomer(customerRequest);
         return new ResponseEntity<>(customerResponse, HttpStatus.OK);
     }
+
+    @GetMapping
+    public ResponseEntity<List<CustomerResponse>> getCustomer() {
+        LOGGER.info("fetching customers from a database");
+        List<CustomerResponse> customerResponse = customerService.getCustomers();
+        return new ResponseEntity<>(customerResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerResponse> getCustomers(@PathVariable("id") String customerId) {
+        LOGGER.info("fetching customer with an id {}", customerId);
+        CustomerResponse customerResponse = customerService.getCustomerById(customerId);
+        return new ResponseEntity<>(customerResponse, HttpStatus.OK);
+    }
+
 
 }
