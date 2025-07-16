@@ -1,17 +1,18 @@
 package com.mycompany.productservice.service;
 
-import java.util.List;
+import com.mycompany.productservice.dto.ProductRequest;
+import com.mycompany.productservice.dto.ProductResponse;
 
-import com.mycompany.productservice.dao.Product;
-import com.mycompany.productservice.dto.ProductDTO;
+import java.util.List;
 
 public interface ProductService {
 
-//	ProductDTO saveProduct(Product product);
-//	List<ProductDTO> fetchProductList();
-//	ProductDTO fetchProductById(Long productId);
-//	ProductDTO fetchProductByBrand(String productName);
-//	ProductDTO updateProductById(Long id, Product product);
-//    String deleteProductById(Long id);
+    ProductResponse saveProduct(ProductRequest productRequest);
+    List<ProductResponse> getProduct();
+    ProductResponse getProductById(Integer productId);
+    ProductResponse updateProduct(ProductRequest productRequest, Integer id);
+    ProductResponse partialUpdate(ProductRequest productRequest, Integer id);
+    void deleteProductById(Integer productId);
+
 
 }
